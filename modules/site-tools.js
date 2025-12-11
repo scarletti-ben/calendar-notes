@@ -501,13 +501,14 @@ function setRootVariable(name, value) {
 // setRootVariable('background', 'red')
 
 /**
- * Flash an element by giving it a temporary green overlay
+ * Flash an element by giving it a temporary overlay
  * 
  * @param {HTMLElement} element - The element to flash
+ * @param {string} colour - The colour to flash ['green']
  * @param {number} duration - Duration of the flash [400ms]
  */
-function flashGreen(element, duration = 400) {
-    const identifier = 'flashGreenOverlay';
+function flashElement(element, colour = 'green', duration = 400) {
+    const identifier = 'flashOverlay';
     if (document.getElementById(identifier)) return;
     const overlay = document.createElement('div');
     overlay.id = identifier;
@@ -517,7 +518,7 @@ function flashGreen(element, duration = 400) {
         position: absolute;
         top: 0;
         left: 0;
-        background: green;
+        background: ${colour};
         opacity: 0;
         pointer-events: none;
         z-index: 9999;
@@ -531,7 +532,7 @@ function flashGreen(element, duration = 400) {
 }
 
 // const element = document.getElementById('element')
-// flashGreen(element, 400)
+// flashElement(element, 'green', 400)
 
 /** 
  * Fetch text from a URL
@@ -1501,7 +1502,7 @@ export {
     toggleAttribute,
     toggleAttribute_01,
     setRootVariable,
-    flashGreen,
+    flashElement,
     fetchText,
     fetchBinary,
     fetchBlob,

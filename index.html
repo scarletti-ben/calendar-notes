@@ -30,13 +30,21 @@
       <div id="header" class="edge hidden"></div>
 
       <div id="content">
-        <textarea id="textarea" class="textarea"></textarea>
+        <textarea id="textarea" class="textarea" disabled></textarea>
       </div>
 
       <div id="footer" class="edge">
         <img id="profile" class="profile" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="placeholder">
-        <div class="button-set"></div>
-        <div id="footer-date"></div>
+        <div class="button-set">
+          
+          <button id="save-button" title="Save">
+            <svg>
+              <use href="#save"></use>
+            </svg>
+          </button>
+
+        </div>
+        <div id="footer-date" title="Open calendar"></div>
       </div>
 
     </div>

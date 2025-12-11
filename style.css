@@ -316,3 +316,21 @@ img.profile {
   user-select: none;
   cursor: pointer;
 }
+
+button {
+  color: var(--foreground);
+  outline: none;
+  border: none;
+  background: none;
+  user-select: none;
+  cursor: pointer;
+}
+
+button > svg {
+  width: 24px;
+  height: 24px;
+}
+
+button:hover {
+  color: var(--accent-weak);
+}

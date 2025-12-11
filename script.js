@@ -9,6 +9,10 @@ import {
     dateTools
 } from "./modules/calendar-widget.js";
 
+import {
+    FirestoreWrapper
+} from "./modules/firestore-wrapper.js";
+
 // < ======================================================
 // < Declarations
 // < ======================================================
@@ -17,7 +21,21 @@ import {
  * Application identifier string
  * @type {string}
  */
-const APP_NAME = '2025-12-11T12-50';
+const APP_NAME = '2025-12-11_calendar-notes';
+
+/**
+ * Firebase configuration object
+ * 
+ * @type {Object}
+ * @property {string} apiKey - Firebase API key
+ * @property {string} authDomain - Domain for Firebase Authentication
+ * @property {string} projectId - Unique identifier for the Firebase project
+ */
+const firebaseConfig = {
+    apiKey: "AIzaSyAx5VIksX5JeW2hk5FDf_8rhyBa6CibH84",
+    authDomain: "mainframe-storage.firebaseapp.com",
+    projectId: "mainframe-storage"
+};
 
 /**
  * Preferences object for user settings
@@ -33,9 +51,7 @@ const preferences = {
  * - Keys in the format `YYYY-MM-DD`
  * @type {{ [key: string]: string }}
  */
-const notes = {
-    '2025-12-08': "test"
-};
+const notes = {};
 
 /**
  * Today's date object
@@ -66,6 +82,9 @@ const queries = {
 
     /** @type {HTMLDivElement} */
     date: document.getElementById('footer-date'),
+
+    /** @type {HTMLButtonElement} */
+    save: document.getElementById('save-button'),
 
     /** @type {HTMLDivElement} */
     modal: document.getElementById('modal'),
@@ -173,16 +192,21 @@ window.addEventListener('load', async () => {
     const usedDates = Object.keys(notes);
     calendar.starredDates.push(...usedDates);
     calendar.updateDate(today);
-    
+
     // Update current date text and `data-date` tag
     queries.date.textContent = dateTools.toPretty(today);
     queries.date.dataset.date = dateTools.toShort(today);
-    
+
     // Load saved text for today's date
     queries.textarea.value = notes[queries.date.dataset.date] || "";
 
-    // Set profile image source to the default image
-    queries.profile.src = paths.profile;
+    // < ========================
+    // < Firestore Setup
+    // < ========================
+
+    // Create and initialise a `FirestoreWrapper` instance
+    const firestore = new FirestoreWrapper(APP_NAME, firebaseConfig);
+    await firestore.init();
 
     // < ========================
     // < Document Listeners
@@ -209,11 +233,17 @@ window.addEventListener('load', async () => {
             } else {
                 notes[date] = text;
             }
-            tools.flashGreen(queries.footer);
+            tools.flashElement(queries.footer, 'green');
             calendar.starredDates.push(date);
             saveNotes();
-            // POSTIT - LOGGING
+        }
+
+        // ~ Hotkey: Control + Alt + N
+        // > Action: Log notes to console
+        else if (event.ctrlKey && event.altKey && event.key === 'n') {
+            event.preventDefault();
             console.log(notes);
+            alert('Notes logged to console');
         }
 
     });
@@ -237,6 +267,34 @@ window.addEventListener('load', async () => {
     // ^ Other Listeners
     // ^ ========================
 
+    // Add listener for firestore user authentication changes
+    firestore.onUserChange((user) => {
+
+        if (user) {
+            console.log('User logged in', user.email);
+            queries.textarea.disabled = false;
+
+        } else {
+            console.log('User logged out');
+            queries.textarea.disabled = true;
+        }
+        
+    });
+
+    // Add click listener to the save button
+    queries.save.addEventListener('click', async () => {
+
+        // > Action: Upload notes
+        try {
+            await firestore.write('notes', notes);
+            tools.flashElement(queries.footer, 'green');
+        } catch (error) {
+            console.log('Error when saving notes');
+            tools.flashElement(queries.footer, 'red');
+        }
+        
+    })
+
     // Add click listener to the date text
     queries.date.addEventListener('click', () => {
 
@@ -253,6 +311,14 @@ window.addEventListener('load', async () => {
         if (!event.target.closest('#modal-content')) {
             queries.modal.classList.toggle('shown', false);
         }
+
+    });
+
+    // Add click listener to profile image
+    queries.profile.addEventListener('click', async (event) => {
+
+        // > Action: Sign in
+        await firestore.login();
 
     });
 

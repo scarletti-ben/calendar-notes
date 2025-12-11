@@ -1,5 +1,8 @@
 # Overview
-The `README` for `Calendar Notes` is a work in progress
+The `README` for `Calendar Notes` is a work in progress. Occasionally additional documentation may be found on the [wiki](https://github.com/scarletti-ben/calendar-notes/wiki), to reduce the need for constant commits for `README` changes in development
+
+# License Information
+Third party licenses can be found in the `/licenses` directory of this repository. Each piece of third party property has been used under the terms of its respective license. All rights remain with the original license holder or holders, where applicable
 
 # Project Metadata
 ```yaml
