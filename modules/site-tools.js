@@ -16,7 +16,7 @@
  * Decode a `Base64` string to bytes
  * 
  * @param {string} base64String - The `Base64` string to decode
- * @returns {ArrayBuffer}  The decoded bytes as an `ArrayBuffer`
+ * @returns {ArrayBuffer} The decoded bytes as an `ArrayBuffer`
  */
 function base64ToBytes(base64String) {
     const byteString = window.atob(base64String);
