@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+
+<html lang="en" translate="no">
+
+<head>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar Notes</title>
+
+  <!-- ~ Icon -->
+  <link rel="icon" type="image/png" href="icon.png" />
+
+  <!-- ~ CSS -->
+  <link rel="stylesheet" href="style.css" />
+
+</head>
+
+<body>
+
+  <!-- ~ HTML -->
+  <div id="page" style="display: none;">
+
+    <div id="modal" class="modal">
+      <div id="modal-content" class="modal-content"></div>
+    </div>
+
+    <div id="main">
+
+      <div id="header" class="edge hidden"></div>
+
+      <div id="content">
+        <textarea id="textarea" class="textarea"></textarea>
+      </div>
+
+      <div id="footer" class="edge">
+        <img id="profile" class="profile" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="placeholder">
+        <div class="button-set"></div>
+        <div id="footer-date"></div>
+      </div>
+
+    </div>
+
+  </div>
+  <!-- ? Note: HTML may be altered by JavaScript -->
+
+  <!-- ~ JavaScript -->
+  <script type="module" src="script.js"></script>
+
+</body>
+
+</html>

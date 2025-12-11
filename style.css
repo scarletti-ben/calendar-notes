@@ -1,0 +1,318 @@
+/* - ========================
+- Root Variables
+- ======================== */
+
+:root {
+  --surface: hsl(0, 0%, 20%);
+  --surface-weak: hsl(0, 0%, 40%);
+  --surface-strong: hsl(0, 0%, 0%);
+  --foreground: hsl(0, 0%, 70%);
+  --foreground-weak: hsl(0, 0%, 100%);
+  --foreground-strong: hsl(0, 0%, 40%);
+  --accent: hsl(180, 100%, 55%);
+  --accent-weak: hsl(180, 100%, 75%);
+  --accent-strong: hsl(180, 100%, 35%);
+  --scrollbar: var(--foreground) transparent;
+  --font-family: monospace;
+  --font-size: 16px;
+  --line-height: 1.5;
+  --half: 12px;
+  --single: 24px;
+  --more: 36px;
+  --double: 48px;
+}
+
+/* - ========================
+- Themes
+- ======================== */
+
+[data-theme="monochrome"] {
+  --surface: hsl(0, 0%, 8%);
+  --surface-weak: hsl(0, 0%, 35%);
+  --surface-strong: hsl(0, 0%, 12%);
+  --foreground: hsl(0, 0%, 41%);
+  --foreground-weak: hsl(0, 0%, 70%);
+  --foreground-strong: hsl(0, 0%, 19%);
+  --accent: hsl(180, 100%, 55%);
+  --accent-weak: hsl(180, 100%, 75%);
+  --accent-strong: hsl(180, 100%, 35%);
+}
+
+
+[data-theme="emerald"] {
+  --surface: hsl(162, 88%, 8%);
+  --surface-weak: hsl(162, 73%, 35%);
+  --surface-strong: hsl(162, 93%, 12%);
+  --foreground: hsl(162, 31%, 41%);
+  --foreground-weak: hsl(162, 78%, 70%);
+  --foreground-strong: hsl(162, 88%, 19%);
+  --accent: hsl(342, 100%, 55%);
+  --accent-weak: hsl(342, 100%, 75%);
+  --accent-strong: hsl(342, 100%, 35%);
+}
+
+[data-theme="ocean"] {
+  --surface: hsl(210, 88%, 8%);
+  --surface-weak: hsl(210, 73%, 35%);
+  --surface-strong: hsl(210, 93%, 12%);
+  --foreground: hsl(210, 31%, 41%);
+  --foreground-weak: hsl(210, 78%, 70%);
+  --foreground-strong: hsl(210, 88%, 19%);
+  --accent: hsl(30, 100%, 55%);
+  --accent-weak: hsl(30, 100%, 75%);
+  --accent-strong: hsl(30, 100%, 35%);
+}
+
+[data-theme="sunset"] {
+  --surface: hsl(15, 88%, 8%);
+  --surface-weak: hsl(15, 73%, 35%);
+  --surface-strong: hsl(15, 93%, 12%);
+  --foreground: hsl(15, 31%, 41%);
+  --foreground-weak: hsl(15, 78%, 70%);
+  --foreground-strong: hsl(15, 88%, 19%);
+  --accent: hsl(195, 100%, 55%);
+  --accent-weak: hsl(195, 100%, 75%);
+  --accent-strong: hsl(195, 100%, 35%);
+}
+
+[data-theme="forest"] {
+  --surface: hsl(120, 88%, 8%);
+  --surface-weak: hsl(120, 73%, 35%);
+  --surface-strong: hsl(120, 93%, 12%);
+  --foreground: hsl(120, 31%, 41%);
+  --foreground-weak: hsl(120, 78%, 70%);
+  --foreground-strong: hsl(120, 88%, 19%);
+  --accent: hsl(300, 100%, 55%);
+  --accent-weak: hsl(300, 100%, 75%);
+  --accent-strong: hsl(300, 100%, 35%);
+}
+
+[data-theme="neon"] {
+  --surface: hsl(300, 88%, 8%);
+  --surface-weak: hsl(300, 73%, 35%);
+  --surface-strong: hsl(300, 93%, 12%);
+  --foreground: hsl(300, 31%, 41%);
+  --foreground-weak: hsl(300, 78%, 70%);
+  --foreground-strong: hsl(300, 88%, 19%);
+  --accent: hsl(120, 100%, 55%);
+  --accent-weak: hsl(120, 100%, 75%);
+  --accent-strong: hsl(120, 100%, 35%);
+}
+
+[data-theme="amber"] {
+  --surface: hsl(45, 88%, 8%);
+  --surface-weak: hsl(45, 73%, 35%);
+  --surface-strong: hsl(45, 93%, 12%);
+  --foreground: hsl(45, 31%, 41%);
+  --foreground-weak: hsl(45, 78%, 70%);
+  --foreground-strong: hsl(45, 88%, 19%);
+  --accent: hsl(225, 100%, 55%);
+  --accent-weak: hsl(225, 100%, 75%);
+  --accent-strong: hsl(225, 100%, 35%);
+}
+
+/* - ========================
+- HTML and Body Styling
+- ======================== */
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: block;
+  overflow: auto;
+  position: relative;
+  box-sizing: border-box;
+  color: var(--foreground);
+  background: rgb(42, 42, 42);
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  line-height: var(--line-height);
+}
+
+/* - ========================
+- Wildcard Styling
+- ======================== */
+
+* {
+  box-sizing: border-box;
+  scrollbar-color: var(--scrollbar);
+}
+
+/* - ========================
+- Utility Classes
+- ======================== */
+
+.hidden {
+  display: none !important;
+}
+
+.debugging * {
+  box-shadow: 0 0 0 1px purple;
+}
+
+/* - ========================
+- Page Element Styling
+- ======================== */
+
+#page {
+  width: 100%;
+  min-height: 100%;
+  height: auto;
+  margin: 0px;
+  padding: 0px;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: var(--surface);
+}
+
+/* ~ ======================================================
+~ Project Styling
+~ ====================================================== */
+
+#main {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: block;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.edge {
+  width: 100%;
+  height: var(--double);
+  flex: 0 0 auto;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--single);
+  padding: 0 var(--single);
+}
+
+.edge .button-set {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--single);
+}
+
+.edge .button {
+  width: var(--single);
+  height: var(--single);
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--foreground-weak);
+  border: none;
+  cursor: pointer;
+  user-select: none;
+  text-align: center;
+  box-shadow: 0 0 0 1px var(--foreground-strong);
+}
+
+#footer {
+  border-top: 2px solid var(--foreground-strong);
+}
+
+#footer-date {
+  color: var(--foreground-weak);
+}
+
+#content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+
+#textarea {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  padding: var(--single);
+  /* padding: 0px; */
+  display: block;
+  border: none;
+  outline: none;
+  resize: none;
+  margin: 0px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  background: transparent;
+  color: var(--foreground-weak);
+}
+
+#textarea.experimental {
+  padding: var(--half);
+  scrollbar-gutter: stable both-edges;
+}
+
+#footer-date {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* < ========================
+< Modal Element Styling
+< ======================== */
+
+#modal {
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  overflow: auto;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease;
+}
+
+#modal.shown {
+  opacity: 1;
+  visibility: visible;
+}
+
+#modal-content {
+  /* width: 80%;
+  height: 80%; */
+  max-width: 80%;
+  max-height: 80%;
+  margin: auto;
+  /* overflow: auto; */
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* box-shadow: 0 0 0 1px red; */
+}
+
+img.profile {
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 2px;
+  border-radius: 50%;
+  background: conic-gradient(magenta, cyan, yellow, magenta);
+  user-select: none;
+  cursor: pointer;
+}
