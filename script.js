@@ -13,6 +13,10 @@ import {
     FirestoreWrapper
 } from "./modules/firestore-wrapper.js";
 
+import {
+    Encryptor
+} from "./modules/encryptor.js";
+
 // < ======================================================
 // < Declarations
 // < ======================================================
@@ -31,11 +35,7 @@ const APP_NAME = '2025-12-11_calendar-notes';
  * @property {string} authDomain - Domain for Firebase Authentication
  * @property {string} projectId - Unique identifier for the Firebase project
  */
-const firebaseConfig = {
-    apiKey: "AIzaSyAx5VIksX5JeW2hk5FDf_8rhyBa6CibH84",
-    authDomain: "mainframe-storage.firebaseapp.com",
-    projectId: "mainframe-storage"
-};
+let firebaseConfig;
 
 /**
  * Preferences object for user settings
@@ -169,6 +169,15 @@ window.addEventListener('load', async () => {
     // < Initial Setup
     // < ========================
 
+    // Create an encryptor instance
+    const encryptor = new Encryptor();
+    await encryptor.setKey('password', 'salt');
+    const encryptedString = 'nDM73vJzLdOZJv+mOCkM/Xf/jvXLtGxNH25bYxpvqzAvcycZl+rF+i+z6hIXAcwmyp+5Q5ytvs6fhdxcmTMbBAke2eBLdS6XeQGgt5QRJUM2RvJ7+lqBrkZ0rDWmNvZNOsP3jMHmZFM5eM4I2K9JUsjqnQw90Gw5doB8HirGwMcuxVNmzsCTW2L6ZTYKBssEvGuGHqg=,Lk8cGzr8NXnoq2/r';
+    const decryptedString = await encryptor.decrypt(encryptedString);
+    console.log(decryptedString);
+    firebaseConfig = JSON.parse(decryptedString);
+    console.log('firebase config: ', firebaseConfig);
+
     // Fetch SVG spritesheet and add it to the DOM
     await tools.fetchSpritesheet(paths.lucide);
 
@@ -176,7 +185,7 @@ window.addEventListener('load', async () => {
     loadPreferences();
 
     // Load notes from localStorage
-    loadNotes();
+    // loadNotes();
 
     // Create a cycle of valid themes
     const themeNames = tools.getThemes();
@@ -196,9 +205,6 @@ window.addEventListener('load', async () => {
     // Update current date text and `data-date` tag
     queries.date.textContent = dateTools.toPretty(today);
     queries.date.dataset.date = dateTools.toShort(today);
-
-    // Load saved text for today's date
-    queries.textarea.value = notes[queries.date.dataset.date] || "";
 
     // < ========================
     // < Firestore Setup
@@ -226,6 +232,8 @@ window.addEventListener('load', async () => {
         // > Action: Save data
         else if (event.ctrlKey && event.key === 's') {
             event.preventDefault();
+            alert('Requires re-implementation');
+            return;
             const date = queries.date.dataset.date;
             const text = queries.textarea.value;
             if (text === "") {
@@ -268,31 +276,59 @@ window.addEventListener('load', async () => {
     // ^ ========================
 
     // Add listener for firestore user authentication changes
-    firestore.onUserChange((user) => {
+    firestore.onUserChange(async (user) => {
 
         if (user) {
             console.log('User logged in', user.email);
+            queries.profile.src = user.photoURL;
             queries.textarea.disabled = false;
+
+            // > Action: Load notes
+            try {
+                const storedNotes = await firestore.read('notes');
+                if (storedNotes) {
+                    Object.assign(notes, storedNotes);
+                    queries.textarea.value = notes[queries.date.dataset.date] || "";
+                    console.log('User notes loaded');
+                } else {
+                    console.log('No user notes found');
+                }
+                tools.flashElement(queries.footer, 'green');
+
+            } catch (error) {
+                console.log('Error when loading notes');
+                tools.flashElement(queries.footer, 'red');
+            }
 
         } else {
             console.log('User logged out');
             queries.textarea.disabled = true;
         }
-        
+
     });
 
     // Add click listener to the save button
     queries.save.addEventListener('click', async () => {
 
-        // > Action: Upload notes
+        // > Action: Save and upload notes
         try {
+            const date = queries.date.dataset.date;
+            const text = queries.textarea.value;
+            if (text === "") {
+                delete notes[date];
+            } else {
+                notes[date] = text;
+            }
+            calendar.starredDates.push(date);
             await firestore.write('notes', notes);
+            console.log('Notes written: ', notes);
             tools.flashElement(queries.footer, 'green');
+            
         } catch (error) {
             console.log('Error when saving notes');
             tools.flashElement(queries.footer, 'red');
         }
-        
+
     })
 
     // Add click listener to the date text
@@ -318,7 +354,7 @@ window.addEventListener('load', async () => {
     queries.profile.addEventListener('click', async (event) => {
 
         // > Action: Sign in
-        await firestore.login();
+        await firestore.login(true);
 
     });
 
@@ -347,5 +383,7 @@ window.addEventListener('load', async () => {
 
     // Show the page element
     queries.page.style.display = '';
+
+    // load notes, obfuscate and deobfuscate
 
 });
