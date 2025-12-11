@@ -89,10 +89,11 @@ class FirestoreWrapper {
     /**
      * Login function to authenticate user via `Google OAuth 2.0`
      * 
+     * @param {boolean} force Option to force popup even if already signed in [false]
      * @returns {UserCredential} `Firestore` user credential object
      */
-    async login() {
-        if (this.user) return this.user;
+    async login(force = false) {
+        if (!force && this.user) return this.user;
         const provider = new GoogleAuthProvider();
         const result = await signInWithPopup(this.auth, provider);
         return result.user;
