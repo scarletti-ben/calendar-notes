@@ -238,7 +238,7 @@ async function loadNotes() {
  */
 function nextTheme() {
     const theme = themeCycle.next();
-    document.body.dataset.theme = theme;
+    document.documentElement.dataset.theme = theme;
     preferences.theme = theme;
     savePreferences();
 }
@@ -271,7 +271,7 @@ window.addEventListener('load', async () => {
 
     // Set current theme from user preferences
     themeCycle.value = preferences.theme;
-    document.body.dataset.theme = preferences.theme;
+    document.documentElement.dataset.theme = preferences.theme;
 
     // Create a Calendar widget and add it to the modal
     calendar = new CalendarWidget();
