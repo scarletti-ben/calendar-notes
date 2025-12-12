@@ -170,7 +170,7 @@ window.addEventListener('load', async () => {
     // < ========================
 
     // Deobfuscate firebaseConfig
-    const cryptoKey = await encryptor.deriveKey('password', salt);
+    const cryptoKey = await encryptor.deriveKey('password', 'salt');
     const encryptedString = 'nDM73vJzLdOZJv+mOCkM/Xf/jvXLtGxNH25bYxpvqzAvcycZl+rF+i+z6hIXAcwmyp+5Q5ytvs6fhdxcmTMbBAke2eBLdS6XeQGgt5QRJUM2RvJ7+lqBrkZ0rDWmNvZNOsP3jMHmZFM5eM4I2K9JUsjqnQw90Gw5doB8HirGwMcuxVNmzsCTW2L6ZTYKBssEvGuGHqg=,Lk8cGzr8NXnoq2/r';
     const decryptedString = await encryptor.decrypt(encryptedString, cryptoKey);
     firebaseConfig = JSON.parse(decryptedString);
