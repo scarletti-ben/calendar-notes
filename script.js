@@ -38,6 +38,27 @@ const APP_NAME = '2025-12-11_calendar-notes';
 let firebaseConfig;
 
 /**
+ * Global variable for `CalendarWidget` instance
+ * 
+ * @type {CalendarWidget}
+ */
+let calendar;
+
+/**
+ * Global variable for `FirestoreWrapper` instance
+ * 
+ * @type {FirestoreWrapper}
+ */
+let firestore;
+
+/**
+ * Global variable for theme `Cycle` instance
+ * 
+ * @type {tools.Cycle}
+ */
+let themeCycle;
+
+/**
  * Preferences object for user settings
  * @type {{ [key: string]: any }}
  */
@@ -85,6 +106,9 @@ const queries = {
 
     /** @type {HTMLButtonElement} */
     save: document.getElementById('save-button'),
+
+    /** @type {HTMLButtonElement} */
+    theme: document.getElementById('theme-button'),
 
     /** @type {HTMLDivElement} */
     modal: document.getElementById('modal'),
@@ -135,8 +159,9 @@ function savePreferences() {
 
 /**
  * Load notes from `localStorage`
+ * @deprecated Site now uses `Firebase` instead
  */
-function loadNotes() {
+function __loadNotes() {
     const key = APP_NAME + "_notes";
     const data = localStorage.getItem(key);
     if (data) {
@@ -150,12 +175,72 @@ function loadNotes() {
 
 /**
  * Save user notes to `localStorage`
+ * @deprecated Site now uses `Firebase` instead
  */
-function saveNotes() {
+function __saveNotes() {
     const key = APP_NAME + "_notes";
     const data = JSON.stringify(notes);
     localStorage.setItem(key, data);
     console.log('User notes saved');
+}
+
+/**
+ * Save user notes to `firestore`
+ */
+async function saveNotes() {
+    try {
+        const date = queries.date.dataset.date;
+        const text = queries.textarea.value;
+        if (text === "") {
+            delete notes[date];
+        } else {
+            notes[date] = text;
+        }
+        calendar.starredDates.push(date);
+        await firestore.write('notes', notes);
+        console.log('User notes saved: ', notes);
+        tools.flashElement(queries.footer, 'green');
+
+    } catch (error) {
+        console.log('Error when saving user notes');
+        tools.flashElement(queries.footer, 'red');
+    }
+}
+
+/**
+ * Load user notes from `firestore`
+ */
+async function loadNotes() {
+    try {
+        const storedNotes = await firestore.read('notes');
+        if (storedNotes) {
+            Object.assign(notes, storedNotes);
+            queries.textarea.value = notes[queries.date.dataset.date] || "";
+            console.log('User notes loaded');
+        } else {
+            console.log('No user notes found');
+            tools.flashElement(queries.footer, 'orange');
+        }
+        tools.flashElement(queries.footer, 'green');
+
+        const usedDates = Object.keys(notes);
+        calendar.starredDates.push(...usedDates);
+        calendar.updateDate(new Date());
+
+    } catch (error) {
+        console.log('Error when loading user notes', error);
+        tools.flashElement(queries.footer, 'red');
+    }
+}
+
+/**
+ * Switch to the next theme, and update user preferences
+ */
+function nextTheme() {
+    const theme = themeCycle.next();
+    document.body.dataset.theme = theme;
+    preferences.theme = theme;
+    savePreferences();
 }
 
 // ~ ======================================================
@@ -174,7 +259,6 @@ window.addEventListener('load', async () => {
     const encryptedString = 'nDM73vJzLdOZJv+mOCkM/Xf/jvXLtGxNH25bYxpvqzAvcycZl+rF+i+z6hIXAcwmyp+5Q5ytvs6fhdxcmTMbBAke2eBLdS6XeQGgt5QRJUM2RvJ7+lqBrkZ0rDWmNvZNOsP3jMHmZFM5eM4I2K9JUsjqnQw90Gw5doB8HirGwMcuxVNmzsCTW2L6ZTYKBssEvGuGHqg=,Lk8cGzr8NXnoq2/r';
     const decryptedString = await encryptor.decrypt(encryptedString, cryptoKey);
     firebaseConfig = JSON.parse(decryptedString);
-    console.log('firebase config: ', firebaseConfig);
 
     // Fetch SVG spritesheet and add it to the DOM
     await tools.fetchSpritesheet(paths.lucide);
@@ -182,22 +266,16 @@ window.addEventListener('load', async () => {
     // Load preferences from localStorage
     loadPreferences();
 
-    // Load notes from localStorage
-    // loadNotes();
-
     // Create a cycle of valid themes
-    const themeNames = tools.getThemes();
-    const themeCycle = new tools.Cycle(themeNames);
+    themeCycle = new tools.Cycle(tools.getThemes());
 
     // Set current theme from user preferences
     themeCycle.value = preferences.theme;
     document.body.dataset.theme = preferences.theme;
 
     // Create a Calendar widget and add it to the modal
-    const calendar = new CalendarWidget();
+    calendar = new CalendarWidget();
     queries.modalContent.appendChild(calendar);
-    const usedDates = Object.keys(notes);
-    calendar.starredDates.push(...usedDates);
     calendar.updateDate(today);
 
     // Update current date text and `data-date` tag
@@ -209,7 +287,7 @@ window.addEventListener('load', async () => {
     // < ========================
 
     // Create and initialise a `FirestoreWrapper` instance
-    const firestore = new FirestoreWrapper(APP_NAME, firebaseConfig);
+    firestore = new FirestoreWrapper(APP_NAME, firebaseConfig);
     await firestore.init();
 
     // < ========================
@@ -230,7 +308,7 @@ window.addEventListener('load', async () => {
         // > Action: Save data
         else if (event.ctrlKey && event.key === 's') {
             event.preventDefault();
-            return alert('Requires re-implementation');
+            saveNotes();
         }
 
         // ~ Hotkey: Control + Alt + N
@@ -250,10 +328,7 @@ window.addEventListener('load', async () => {
         // > Action: Cycle theme
         if (event.button === 1) {
             event.preventDefault();
-            const theme = themeCycle.next();
-            document.body.dataset.theme = theme;
-            preferences.theme = theme;
-            savePreferences();
+            nextTheme();
         };
 
     });
@@ -264,32 +339,18 @@ window.addEventListener('load', async () => {
 
     // Add listener for firestore user authentication changes
     firestore.onUserChange(async (user) => {
-
         if (user) {
             console.log('User logged in', user.email);
             queries.profile.src = user.photoURL;
             queries.textarea.disabled = false;
 
             // > Action: Load notes
-            try {
-                const storedNotes = await firestore.read('notes');
-                if (storedNotes) {
-                    Object.assign(notes, storedNotes);
-                    queries.textarea.value = notes[queries.date.dataset.date] || "";
-                    console.log('User notes loaded');
-                } else {
-                    console.log('No user notes found');
-                }
-                tools.flashElement(queries.footer, 'green');
-
-            } catch (error) {
-                console.log('Error when loading notes');
-                tools.flashElement(queries.footer, 'red');
-            }
+            loadNotes();
 
         } else {
             console.log('User logged out');
             queries.textarea.disabled = true;
+
         }
 
     });
@@ -298,23 +359,15 @@ window.addEventListener('load', async () => {
     queries.save.addEventListener('click', async () => {
 
         // > Action: Save and upload notes
-        try {
-            const date = queries.date.dataset.date;
-            const text = queries.textarea.value;
-            if (text === "") {
-                delete notes[date];
-            } else {
-                notes[date] = text;
-            }
-            calendar.starredDates.push(date);
-            await firestore.write('notes', notes);
-            console.log('Notes written: ', notes);
-            tools.flashElement(queries.footer, 'green');
-            
-        } catch (error) {
-            console.log('Error when saving notes');
-            tools.flashElement(queries.footer, 'red');
-        }
+        saveNotes();
+
+    });
+
+    // Add click listener to the theme button
+    queries.theme.addEventListener('click', async () => {
+
+        // > Action: Cycle theme
+        nextTheme();
 
     })
 
@@ -324,7 +377,7 @@ window.addEventListener('load', async () => {
         // > Action: Open the modal
         queries.modal.classList.toggle('shown', true);
 
-    })
+    });
 
     // Add click listener to modal
     queries.modal.addEventListener('click', (event) => {
