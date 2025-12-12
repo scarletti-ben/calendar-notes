@@ -14,7 +14,7 @@ import {
 } from "./modules/firestore-wrapper.js";
 
 import {
-    Encryptor
+    encryptor
 } from "./modules/encryptor.js";
 
 // < ======================================================
@@ -169,12 +169,10 @@ window.addEventListener('load', async () => {
     // < Initial Setup
     // < ========================
 
-    // Create an encryptor instance
-    const encryptor = new Encryptor();
-    await encryptor.setKey('password', 'salt');
+    // Deobfuscate firebaseConfig
+    const cryptoKey = await encryptor.deriveKey('password', salt);
     const encryptedString = 'nDM73vJzLdOZJv+mOCkM/Xf/jvXLtGxNH25bYxpvqzAvcycZl+rF+i+z6hIXAcwmyp+5Q5ytvs6fhdxcmTMbBAke2eBLdS6XeQGgt5QRJUM2RvJ7+lqBrkZ0rDWmNvZNOsP3jMHmZFM5eM4I2K9JUsjqnQw90Gw5doB8HirGwMcuxVNmzsCTW2L6ZTYKBssEvGuGHqg=,Lk8cGzr8NXnoq2/r';
-    const decryptedString = await encryptor.decrypt(encryptedString);
-    console.log(decryptedString);
+    const decryptedString = await encryptor.decrypt(encryptedString, cryptoKey);
     firebaseConfig = JSON.parse(decryptedString);
     console.log('firebase config: ', firebaseConfig);
 
@@ -232,18 +230,7 @@ window.addEventListener('load', async () => {
         // > Action: Save data
         else if (event.ctrlKey && event.key === 's') {
             event.preventDefault();
-            alert('Requires re-implementation');
-            return;
-            const date = queries.date.dataset.date;
-            const text = queries.textarea.value;
-            if (text === "") {
-                delete notes[date];
-            } else {
-                notes[date] = text;
-            }
-            tools.flashElement(queries.footer, 'green');
-            calendar.starredDates.push(date);
-            saveNotes();
+            return alert('Requires re-implementation');
         }
 
         // ~ Hotkey: Control + Alt + N
@@ -383,7 +370,5 @@ window.addEventListener('load', async () => {
 
     // Show the page element
     queries.page.style.display = '';
-
-    // load notes, obfuscate and deobfuscate
 
 });

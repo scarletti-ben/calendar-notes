@@ -1,204 +1,166 @@
 /**
- * Encryption class using `Web Crypto API`
- * - Exports `Encryptor` class
+ * Utility module for encryption via `Web Crypto API`
+ * - Exports `encryptor` utility object
  * 
  * @module encryptor
  * @author Ben Scarletti
- * @since 2025-08-16
+ * @since 2025-08-27T09-39
+ * @modified 2025-12-12T10-45
  * @see {@link https://github.com/scarletti-ben}
  * @license MIT
  */
 
 // < ======================================================
-// < Encryptor Class
+// < Internal Functions
 // < ======================================================
 
-/** Utility class to handle encryption */
-class Encryptor {
-
-    /** @type {CryptoKey} */
-    key;
-
-    /**
-     * Sets key, or returns currently set key
-     * @returns {Promise<CryptoKey>} The CryptoKey
-     */
-    async ensureKey() {
-        if (!this.key) {
-            const password = prompt('Enter password:');
-            const salt = prompt('Enter salt:');
-            this.key = await this.createKey(password, salt);
-        }
-        return this.key;
+/**
+ * Decode a `Base64` string to bytes
+ * 
+ * @param {string} base64String - The `Base64` string to decode
+ * @returns {ArrayBuffer}  The decoded bytes as an `ArrayBuffer`
+ */
+function base64ToBytes(base64String) {
+    const byteString = window.atob(base64String);
+    const byteArray = new Uint8Array(byteString.length);
+    for (let i = 0; i < byteString.length; i++) {
+        byteArray[i] = byteString.charCodeAt(i);
     }
+    return byteArray.buffer;
+}
 
-    /**
-     * Convert a Base64-encoded string to an ArrayBuffer
-     * @param {string} base64String - The Base64-encoded string
-     * @returns {ArrayBuffer} The ArrayBuffer
-     */
-    _base64ToArrayBuffer(base64String) {
-        const binaryString = window.atob(base64String);
-        const intArray = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-            intArray[i] = binaryString.charCodeAt(i);
-        }
-        const arrayBuffer = intArray.buffer;
-        return arrayBuffer;
+/**
+ * Encode bytes to a `Base64` string
+ * 
+ * @param {ArrayBuffer | Uint8Array} buffer - The bytes as `ArrayBuffer` or `Uint8Array`
+ * @returns {string} The encoded `Base64` string
+ */
+function bytesToBase64(buffer) {
+    let byteString = '';
+    const byteArray = new Uint8Array(buffer);
+    for (let i = 0; i < byteArray.byteLength; i++) {
+        byteString += String.fromCharCode(byteArray[i]);
     }
+    return window.btoa(byteString);
+}
 
-    /**
-     * Convert a buffer to a Base64-encoded string
-     * @param {ArrayBuffer | Uint8Array} buffer - The buffer
-     * @returns {string} The Base64-encoded string
-     */
-    _bufferToBase64(buffer) {
-        let binaryString = '';
-        const intArray = new Uint8Array(buffer);
-        const len = intArray.byteLength;
-        for (let i = 0; i < len; i++) {
-            binaryString += String.fromCharCode(intArray[i]);
-        }
-        const base64String = window.btoa(binaryString)
-        return base64String;
-    }
+// < ======================================================
+// < Encryptor Functions
+// < ======================================================
 
-    /**
-     * Derive cryptographic key using PBKDF2 from a given password and salt
-     * @param {string} password - The password to derive the key from
-     * @param {string} salt - The salt to derive the key from
-     * @returns {Promise<CryptoKey>} The derived CryptoKey object
-     */
-    async createKey(password, salt) {
+/**
+ * Derive a `CryptoKey` from a given password and salt
+ * - Key is non-extractable, and should not be serialisable
+ *     - Should only be usable on the system that derived the key
+ *     - Cannot be wrapped or transferred
+ *     - Can be safely stored in `IndexedDB`
+ * - `PBKDF2` / `SHA-256` / `AES-GCM` / `i = 100_000`
+ * 
+ * @param {string} password - The password to derive the key from
+ * @param {string} salt - The salt to derive the key from
+ * @returns {Promise<CryptoKey>} The derived `CryptoKey` object
+ */
+async function deriveKey(password, salt) {
 
-        // > Convert password and salt to int array
-        const passwordIntArray = new TextEncoder().encode(password);
-        const saltIntArray = new TextEncoder().encode(salt);
+    // > Text encoder used for encoding strings to bytes
+    const encoder = new TextEncoder();
 
-        let keyMaterial;
+    // > Generate master key for use by deriveKey
+    const masterKey = await window.crypto.subtle.importKey(
+        'raw',
+        encoder.encode(password),
+        "PBKDF2",
+        false,
+        ["deriveKey"]
+    );
+
+    // > Derive secret key from master key
+    return window.crypto.subtle.deriveKey(
         {
-            // > Define importKey arguments
-            const format = "raw";
-            const algorithm = { name: "PBKDF2" };
-            const extractable = false;
-            const keyUsages = ["deriveKey"]
-
-            // > Import key material to create a CryptoKey object
-            keyMaterial = await window.crypto.subtle.importKey(
-                format,
-                passwordIntArray,
-                algorithm,
-                extractable,
-                keyUsages
-            );
-        }
-
-        let cryptoKey;
+            name: "PBKDF2",
+            salt: encoder.encode(salt),
+            iterations: 100000,
+            hash: "SHA-256"
+        },
+        masterKey,
         {
-            // > Define deriveKey arguments
-            const algorithm = {
-                name: "PBKDF2",
-                salt: saltIntArray,
-                iterations: 100000,
-                hash: "SHA-256"
-            };
-            const derivedKeyType = { name: "AES-GCM", length: 256 };
-            const extractable = false;
-            const keyUsages = ["encrypt", "decrypt"];
+            name: "AES-GCM",
+            length: 256
+        },
+        false,
+        [
+            "encrypt",
+            "decrypt"
+        ]
+    );
 
-            // > Derive the key using the given arguments
-            cryptoKey = await window.crypto.subtle.deriveKey(
-                algorithm,
-                keyMaterial,
-                derivedKeyType,
-                extractable,
-                keyUsages
-            );
+}
 
-        }
+/**
+ * Encrypt text string using a given `CryptoKey`
+ * 
+ * @param {string} text - The text string to encrypt
+ * @param {CryptoKey} key - The `CryptoKey` for encryption
+ * @returns {Promise<string>} Ciphertext and IV as a comma-separated `Base64` string
+ */
+async function encrypt(text, key) {
+    const textBytes = new TextEncoder().encode(text);
+    const IVBytes = window.crypto.getRandomValues(new Uint8Array(12));
+    const cipherBytes = await window.crypto.subtle.encrypt(
+        {
+            name: "AES-GCM",
+            iv: IVBytes
+        },
+        key,
+        textBytes
+    );
+    const IV64 = bytesToBase64(IVBytes);
+    const ciphertext64 = bytesToBase64(cipherBytes);
+    return ciphertext64 + ',' + IV64;
+}
 
-        return cryptoKey;
-
-    }
-
-    /**
-     * Derive cryptographic key using PBKDF2 from a given password and salt
-     * @param {string} password - The password to derive the key from
-     * @param {string} salt - The salt to derive the key from
-     */
-    async setKey(password, salt) {
-        this.key = await this.createKey(password, salt);
-    }
-
-    /**
-     * Encrypt string using AES-GCM, returning a single cipher data string
-     * @param {string} str - The string to encrypt
-     * @returns {Promise<string>} The ciphertext and iv as a comma-separated Base64-encoded string
-     */
-    async encrypt(str) {
-        await this.ensureKey();
-
-        // > Convert string to Uint8Array (byte array)
-        const stringByteArray = new TextEncoder().encode(str);
-
-        // > Generate random Uint8Array for the initialisation vector
-        const ivIntArray = window.crypto.getRandomValues(new Uint8Array(12));
-
-        // > Encrypt to a ciphertext ArrayBuffer using the given arguments
-        const ciphertextArrayBuffer = await window.crypto.subtle.encrypt(
-            {
-                name: "AES-GCM",
-                iv: ivIntArray
-            },
-            this.key,
-            stringByteArray
-        );
-
-        // > Encode ciphertext and iv buffers to Base64 strings
-        const ciphertext64 = this._bufferToBase64(ciphertextArrayBuffer);
-        const iv64 = this._bufferToBase64(ivIntArray);
-
-        // > Return comma-separated string of ciphertext and iv
-        const cipherData = ciphertext64 + ',' + iv64
-        return cipherData;
-
-    }
-
-    /**
-     * Decrypt Base64 cipherData using AES-GCM, returning original string
-     * @param {string} cipherData - Base64-encoded ciphertext and iv as one comma-separated string
-     * @returns {Promise<string>} The decrypted string
-     */
-    async decrypt(cipherData) {
-        await this.ensureKey();
-
-        // > Split the comma-separated string
-        const [ciphertext64, iv64] = cipherData.split(',');
-
-        // > Convert the Base64 ciphertext and iv back to ArrayBuffers
-        const ciphertextArrayBuffer = this._base64ToArrayBuffer(ciphertext64);
-        const ivArrayBuffer = this._base64ToArrayBuffer(iv64);
-
-        // > Decrypt to original string ArrayBuffer
-        const stringArrayBuffer = await window.crypto.subtle.decrypt(
-            {
-                name: "AES-GCM",
-                iv: ivArrayBuffer
-            },
-            this.key,
-            ciphertextArrayBuffer
-        );
-
-        // > Decode string ArrayBuffer to string and return
-        const str = new TextDecoder().decode(stringArrayBuffer);
-        return str;
-
-    }
-
+/**
+ * Decrypt `Base64` string using a given `CryptoKey`
+ * 
+ * @param {string} encrypted64 - Ciphertext and IV as a comma-separated `Base64` string
+ * @param {CryptoKey} key - The `CryptoKey` for decryption
+ * @returns {Promise<string>} The decrypted text string
+ */
+async function decrypt(encrypted64, key) {
+    const [ciphertext64, IV64] = encrypted64.split(',');
+    const ciphertextBytes = base64ToBytes(ciphertext64);
+    const IVBytes = base64ToBytes(IV64);
+    const textBytes = await window.crypto.subtle.decrypt(
+        {
+            name: "AES-GCM",
+            iv: IVBytes
+        },
+        key,
+        ciphertextBytes
+    );
+    return new TextDecoder().decode(textBytes);
 }
 
 // > ======================================================
 // > Exports
 // > ======================================================
 
-export { Encryptor }
+/**
+ * Utility object for interacting with `Web Crypto API`
+ * 
+ * @example
+ * import {
+ *     encryptor
+ * } from "./modules/encryptor.js";
+ * 
+ * const text = 'test';
+ * const key = await encryptor.deriveKey('password', 'salt');
+ * const encryptedText = await encryptor.encrypt(text, key);
+ * const decryptedText = await encryptor.decrypt(encryptedText, key);
+ * console.log(decryptedText == text);
+ */
+export const encryptor = {
+    deriveKey,
+    encrypt,
+    decrypt
+}
