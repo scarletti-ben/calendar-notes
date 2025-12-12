@@ -101,7 +101,7 @@ async function deriveKey(password, salt) {
  * 
  * @param {string} text - The text string to encrypt
  * @param {CryptoKey} key - The `CryptoKey` for encryption
- * @returns {Promise<string>} Ciphertext and IV as a comma-separated `Base64` string
+ * @returns {Promise<string>} The ciphertext and IV as a comma-separated `Base64` string
  */
 async function encrypt(text, key) {
     const textBytes = new TextEncoder().encode(text);
@@ -122,7 +122,7 @@ async function encrypt(text, key) {
 /**
  * Decrypt `Base64` string using a given `CryptoKey`
  * 
- * @param {string} encrypted64 - Ciphertext and IV as a comma-separated `Base64` string
+ * @param {string} encrypted64 - The ciphertext and IV as a comma-separated `Base64` string
  * @param {CryptoKey} key - The `CryptoKey` for decryption
  * @returns {Promise<string>} The decrypted text string
  */
