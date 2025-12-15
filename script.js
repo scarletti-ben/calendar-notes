@@ -110,6 +110,9 @@ const queries = {
     /** @type {HTMLButtonElement} */
     theme: document.getElementById('theme-button'),
 
+    /** @type {HTMLButtonElement} */
+    fullscreen: document.getElementById('fullscreen-button'),
+
     /** @type {HTMLDivElement} */
     modal: document.getElementById('modal'),
 
@@ -254,6 +257,12 @@ window.addEventListener('load', async () => {
     // < Initial Setup
     // < ========================
 
+    // Set textarea attributes
+    queries.textarea.setAttribute('autocomplete', 'off');
+    queries.textarea.setAttribute('autocorrect', 'off');
+    queries.textarea.setAttribute('autocapitalize', 'off');
+    queries.textarea.setAttribute('spellcheck', 'false');
+
     // Deobfuscate firebaseConfig
     const cryptoKey = await encryptor.deriveKey('password', 'salt');
     const encryptedString = 'nDM73vJzLdOZJv+mOCkM/Xf/jvXLtGxNH25bYxpvqzAvcycZl+rF+i+z6hIXAcwmyp+5Q5ytvs6fhdxcmTMbBAke2eBLdS6XeQGgt5QRJUM2RvJ7+lqBrkZ0rDWmNvZNOsP3jMHmZFM5eM4I2K9JUsjqnQw90Gw5doB8HirGwMcuxVNmzsCTW2L6ZTYKBssEvGuGHqg=,Lk8cGzr8NXnoq2/r';
@@ -369,7 +378,21 @@ window.addEventListener('load', async () => {
         // > Action: Cycle theme
         nextTheme();
 
-    })
+    });
+
+    // Add click listener to the fullscreen button
+    queries.fullscreen.addEventListener('click', async () => {
+
+        // > Action: Toggle full screen
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(error => {
+                console.error(`Error attempting to enable fullscreen: ${error.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+
+    });
 
     // Add click listener to the date text
     queries.date.addEventListener('click', () => {
