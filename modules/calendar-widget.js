@@ -2,7 +2,7 @@
  * Calendar widget
  * - Registers custom element `<calendar-widget>`
  * - Exports `CalendarWidget` class
- * - Exports `dateTools` object
+ * - Exports `dateTools` utility object
  * 
  * ! Note: `SHADOW_CSS` relies on variables from `style.css`
  * 
@@ -19,6 +19,7 @@
 
 /**
  * Markup for shadow root
+ * 
  * @type {string}
  */
 const SHADOW_HTML = `
@@ -51,6 +52,7 @@ const SHADOW_HTML = `
 
 /**
  * Styling for shadow root
+ * 
  * @type {string}
  */
 const SHADOW_CSS = `
@@ -184,10 +186,10 @@ const SHADOW_CSS = `
     border-color: var(--accent) var(--accent) transparent transparent;
 }
 
-`.trim()
+`.trim();
 
 // < ======================================================
-// < dateTools Object
+// < Utility Object: dateTools
 // < ======================================================
 
 const dateTools = {
@@ -199,7 +201,7 @@ const dateTools = {
      * - Starts from Monday (Mo-Su)
      * - Includes dates from the previous / next month
      *
-     * @param {Date} date - The Date object to work with
+     * @param {Date} date - The `Date` object to work with
      * @returns {Date[]} Array of 42 `Date` objects
      */
     getDateArray(date) {
@@ -220,7 +222,8 @@ const dateTools = {
     },
 
     /**
-     * Clone a Date object
+     * Clone a `Date` object
+     * 
      * @param {Date} date - Source date
      * @param {Object} [opts] - Optional changes to output date
      * @returns {Date} The cloned date
@@ -234,8 +237,9 @@ const dateTools = {
     },
 
     /**
-     * Convert Date object to ordinal day string
-     * @param {Date} date - The Date object to convert
+     * Convert `Date` object to ordinal day string
+     * 
+     * @param {Date} date - The `Date` object to convert
      * @returns {string} Ordinal day string eg. '3rd'
      */
     toOrdinal(date) {
@@ -250,10 +254,11 @@ const dateTools = {
     },
 
     /**
-     * Convert Date object to `YYYY-MM-DD` string
+     * Convert `Date` object to `YYYY-MM-DD` string
      * - Does not convert to UTC+00:00
      * - Uses Canada for `YYYY-MM-DD` format
-     * @param {Date} date - The Date object to convert
+     * 
+     * @param {Date} date - The `Date` object to convert
      * @returns {string} Shortened date string eg. '2025-08-03'
      */
     toShort(date) {
@@ -261,8 +266,9 @@ const dateTools = {
     },
 
     /** 
-     * Convert Date object to month index
-     * @param {Date} date - The Date object to convert
+     * Convert `Date` object to month index
+     * 
+     * @param {Date} date - The `Date` object to convert
      * @returns {number} The month index (0-11)
      */
     toMonthIndex(date) {
@@ -270,8 +276,9 @@ const dateTools = {
     },
 
     /** 
-     * Convert Date object to month name
-     * @param {Date} date - The Date object to convert
+     * Convert `Date` object to month name
+     * 
+     * @param {Date} date - The `Date` object to convert
      * @returns {string} The month name eg' 'July'
      */
     toMonthName(date) {
@@ -279,16 +286,18 @@ const dateTools = {
     },
 
     /** 
-     * Convert Date object to day name
-     * @param {Date} date - The Date object to convert
+     * Convert `Date` object to day name
+     * 
+     * @param {Date} date - The `Date` object to convert
      * @returns {string} The day name eg. 'Monday'
      */
     toDayName(date) {
         return date.toLocaleString('en-GB', { weekday: 'long' });
     },
     /** 
-     * Convert Date object to year number
-     * @param {Date} date - The Date object to convert
+     * Convert `Date` object to year number
+     * 
+     * @param {Date} date - The `Date` object to convert
      * @returns {number} The year number eg. 2025
      */
     toYear(date) {
@@ -296,8 +305,9 @@ const dateTools = {
     },
 
     /** 
-     * Convert Date object to pretty string
-     * @param {Date} date - The Date object to convert
+     * Convert `Date` object to pretty string
+     * 
+     * @param {Date} date - The `Date` object to convert
      * @returns {string} The pretty date eg. 'July 1st 2025'
      */
     toPretty(date) {
@@ -309,9 +319,10 @@ const dateTools = {
     },
 
     /** 
-     * Check if two Date objects share the same date
-     * @param {Date} d1 - The first Date object
-     * @param {Date} d2 - The second Date object
+     * Check if two `Date` objects share the same date
+     * 
+     * @param {Date} d1 - The first `Date` object
+     * @param {Date} d2 - The second `Date` object
      * @returns {boolean} True if same date
      */
     isSameDate(d1, d2) {
@@ -323,8 +334,9 @@ const dateTools = {
     },
 
     /** 
-     * Check if a Date object is today
-     * @param {Date} date - The Date object to check
+     * Check if a `Date` object is today
+     * 
+     * @param {Date} date - The `Date` object to check
      * @returns {boolean} True if today
      */
     isToday(date) {
@@ -335,20 +347,21 @@ const dateTools = {
 }
 
 // < ======================================================
-// < Calendar Widget Custom Element
+// < Class: Calendar Widget
 // < ======================================================
 
 /**
  * Calendar Widget Custom HTML Element
  * - Displays a monthly calendar with navigation and date selection
+ * 
  * @extends HTMLElement
  */
 class CalendarWidget extends HTMLElement {
 
-    /** @type {Date} Date object from last clicked day */
+    /** @type {Date} `Date` object from last clicked day */
     dateChosen;
 
-    /** @type {Date} Date object from today's date */
+    /** @type {Date} `Date` object from today's date */
     dateToday;
 
     /** @type {HTMLDivElement} Navigator text element showing month / year */
@@ -365,12 +378,14 @@ class CalendarWidget extends HTMLElement {
 
     /** String array of dates that are starred
      * - Dates in the format YYYY-MM-DD
+     * 
      * @type {string[]}
      */
     starredDates;
 
     /**
      * Callback fired when a day is clicked
+     * 
      * @type {(date: Date, element: HTMLDivElement): void | null}
      */
     onDayClick = null;
@@ -395,6 +410,7 @@ class CalendarWidget extends HTMLElement {
      * Navigate to next or previous month
      * - Updates the calendar display
      * - Accepts any positive or negative number eg. +1 or -8
+     * 
      * @param {number} change - Number of months to move (positive or negative)
      */
     navigateMonth(change) {
@@ -433,6 +449,7 @@ class CalendarWidget extends HTMLElement {
 
     /**
      * Reset class list for a given day element
+     * 
      * @param {HTMLDivElement} day The day element to reset
      */
     resetDayClasses(day) {
@@ -442,6 +459,7 @@ class CalendarWidget extends HTMLElement {
     /**
      * Update the current month and re-render the calendar
      * - Updates days in the grid, and navigator text
+     * 
      * @param {Date} date - The date to use for date array
      */
     updateDate(date) {
@@ -473,6 +491,7 @@ class CalendarWidget extends HTMLElement {
 
     /**
      * Check if a date is in the starred dates array
+     * 
      * @param {Date} date - The date to check against starred dates
      */
     shouldStar(date) {
@@ -482,6 +501,7 @@ class CalendarWidget extends HTMLElement {
 
     /**
      * Toggle the "marked" class on a given day element
+     * 
      * @param {HTMLDivElement} day The day element to mark
      */
     toggleDayMarked(day) {
