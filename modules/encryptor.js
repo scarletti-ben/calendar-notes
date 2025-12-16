@@ -4,8 +4,8 @@
  * 
  * @module encryptor
  * @author Ben Scarletti
- * @since 2025-08-27T09-39
- * @modified 2025-12-12T10-45
+ * @since 2025-08-27
+ * @modified 2025-12-12
  * @see {@link https://github.com/scarletti-ben}
  * @license MIT
  */
