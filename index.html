@@ -21,6 +21,8 @@
   <!-- ~ HTML -->
   <div id="page" style="display: none;">
 
+    <profile-menu></profile-menu>
+
     <div id="modal" class="modal">
       <div id="modal-content" class="modal-content"></div>
     </div>
@@ -30,34 +32,18 @@
       <div id="header" class="edge hidden"></div>
 
       <div id="content">
-        <textarea id="textarea" class="textarea" disabled></textarea>
+        <textarea id="textarea" class="textarea" disabled autocomplete="off" autocorrect="off" autocapitalize="off"
+          spellcheck="false">
+        </textarea>
       </div>
 
       <div id="footer" class="edge">
+
         <img id="profile" class="profile" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
           alt="placeholder">
-        <div class="button-set">
 
-          <button id="save-button" title="Save">
-            <svg>
-              <use href="#save"></use>
-            </svg>
-          </button>
-
-          <button id="theme-button" title="Change theme">
-            <svg>
-              <use href="#palette"></use>
-            </svg>
-          </button>
-
-          <button id="fullscreen-button" title="Toggle full screen">
-            <svg>
-              <use href="#fullscreen"></use>
-            </svg>
-          </button>
-
-        </div>
         <div id="footer-date" title="Open calendar"></div>
+
       </div>
 
     </div>

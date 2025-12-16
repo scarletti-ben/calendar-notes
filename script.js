@@ -17,6 +17,10 @@ import {
     encryptor
 } from "./modules/encryptor.js";
 
+import {
+    ProfileMenu
+} from "./modules/profile-menu.js";
+
 // < ======================================================
 // < Declarations
 // < ======================================================
@@ -104,30 +108,14 @@ const queries = {
     /** @type {HTMLDivElement} */
     date: document.getElementById('footer-date'),
 
-    /** @type {HTMLButtonElement} */
-    save: document.getElementById('save-button'),
-
-    /** @type {HTMLButtonElement} */
-    theme: document.getElementById('theme-button'),
-
-    /** @type {HTMLButtonElement} */
-    fullscreen: document.getElementById('fullscreen-button'),
-
     /** @type {HTMLDivElement} */
     modal: document.getElementById('modal'),
 
     /** @type {HTMLDivElement} */
     modalContent: document.getElementById('modal-content'),
 
-}
-
-/** 
- * Lookup object of file paths
- */
-const paths = {
-
-    lucide: './assets/svg/lucide.svg',
-    profile: './assets/jpg/profile.jpg'
+    /** @type {ProfileMenu} */
+    menu: document.querySelector('profile-menu')
 
 }
 
@@ -161,33 +149,6 @@ function savePreferences() {
 }
 
 /**
- * Load notes from `localStorage`
- * @deprecated Site now uses `Firebase` instead
- */
-function __loadNotes() {
-    const key = APP_NAME + "_notes";
-    const data = localStorage.getItem(key);
-    if (data) {
-        const storedNotes = JSON.parse(data);
-        Object.assign(notes, storedNotes);
-        console.log('User notes loaded');
-    } else {
-        console.log('No user notes found');
-    }
-}
-
-/**
- * Save user notes to `localStorage`
- * @deprecated Site now uses `Firebase` instead
- */
-function __saveNotes() {
-    const key = APP_NAME + "_notes";
-    const data = JSON.stringify(notes);
-    localStorage.setItem(key, data);
-    console.log('User notes saved');
-}
-
-/**
  * Save user notes to `firestore`
  */
 async function saveNotes() {
@@ -196,12 +157,16 @@ async function saveNotes() {
         const text = queries.textarea.value;
         if (text === "") {
             delete notes[date];
+
         } else {
             notes[date] = text;
         }
-        calendar.starredDates.push(date);
         await firestore.write('notes', notes);
         console.log('User notes saved: ', notes);
+        const usedDates = Object.keys(notes);
+        calendar.starredDates.length = 0;
+        calendar.starredDates.push(...usedDates);
+        calendar.updateDate(new Date());
         tools.flashElement(queries.footer, 'green');
 
     } catch (error) {
@@ -227,6 +192,7 @@ async function loadNotes() {
         tools.flashElement(queries.footer, 'green');
 
         const usedDates = Object.keys(notes);
+        calendar.starredDates.length = 0;
         calendar.starredDates.push(...usedDates);
         calendar.updateDate(new Date());
 
@@ -257,20 +223,11 @@ window.addEventListener('load', async () => {
     // < Initial Setup
     // < ========================
 
-    // Set textarea attributes
-    queries.textarea.setAttribute('autocomplete', 'off');
-    queries.textarea.setAttribute('autocorrect', 'off');
-    queries.textarea.setAttribute('autocapitalize', 'off');
-    queries.textarea.setAttribute('spellcheck', 'false');
-
     // Deobfuscate firebaseConfig
     const cryptoKey = await encryptor.deriveKey('password', 'salt');
     const encryptedString = 'nDM73vJzLdOZJv+mOCkM/Xf/jvXLtGxNH25bYxpvqzAvcycZl+rF+i+z6hIXAcwmyp+5Q5ytvs6fhdxcmTMbBAke2eBLdS6XeQGgt5QRJUM2RvJ7+lqBrkZ0rDWmNvZNOsP3jMHmZFM5eM4I2K9JUsjqnQw90Gw5doB8HirGwMcuxVNmzsCTW2L6ZTYKBssEvGuGHqg=,Lk8cGzr8NXnoq2/r';
     const decryptedString = await encryptor.decrypt(encryptedString, cryptoKey);
     firebaseConfig = JSON.parse(decryptedString);
-
-    // Fetch SVG spritesheet and add it to the DOM
-    await tools.fetchSpritesheet(paths.lucide);
 
     // Load preferences from localStorage
     loadPreferences();
@@ -300,6 +257,56 @@ window.addEventListener('load', async () => {
     await firestore.init();
 
     // < ========================
+    // < Menu Setup
+    // < ========================
+
+    // Add save button to main menu
+    queries.menu.addItem('save', 'Save', 'save', async () => {
+
+        // > Action: Save and upload notes
+        saveNotes();
+
+    });
+
+    // Add theme switch button to main menu
+    queries.menu.addItem('theme', 'Switch theme', 'palette', async () => {
+
+        // > Action: Cycle theme
+        nextTheme();
+
+    });
+
+    // Add fillscreen toggle button to main menu
+    queries.menu.addItem('fullscreen', 'Toggle full screen', 'fullscreen', async () => {
+
+        // > Action: Toggle full screen
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(error => {
+                console.error(`Error attempting to enable fullscreen: ${error.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+
+    });
+
+    // Add log in button to main menu
+    queries.menu.addItem('login', 'Log in', 'log-in', async () => {
+
+        // > Action: Log in
+        await firestore.login();
+
+    });
+
+    // Add log out button to main menu
+    queries.menu.addItem('logout', 'Log out', 'log-out', async () => {
+
+        // > Action: Log out
+        await firestore.logout();
+
+    });
+
+    // < ========================
     // < Document Listeners
     // < ========================
 
@@ -326,6 +333,7 @@ window.addEventListener('load', async () => {
             event.preventDefault();
             console.log(notes);
             alert('Notes logged to console');
+
         }
 
     });
@@ -352,6 +360,9 @@ window.addEventListener('load', async () => {
             console.log('User logged in', user.email);
             queries.profile.src = user.photoURL;
             queries.textarea.disabled = false;
+            queries.menu.setEmail(user.email);
+            queries.menu.hideItem('login');
+            queries.menu.showItem('logout');
 
             // > Action: Load notes
             loadNotes();
@@ -359,37 +370,11 @@ window.addEventListener('load', async () => {
         } else {
             console.log('User logged out');
             queries.textarea.disabled = true;
+            queries.menu.setEmail();
+            queries.profile.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+            queries.menu.showItem('login');
+            queries.menu.hideItem('logout');
 
-        }
-
-    });
-
-    // Add click listener to the save button
-    queries.save.addEventListener('click', async () => {
-
-        // > Action: Save and upload notes
-        saveNotes();
-
-    });
-
-    // Add click listener to the theme button
-    queries.theme.addEventListener('click', async () => {
-
-        // > Action: Cycle theme
-        nextTheme();
-
-    });
-
-    // Add click listener to the fullscreen button
-    queries.fullscreen.addEventListener('click', async () => {
-
-        // > Action: Toggle full screen
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(error => {
-                console.error(`Error attempting to enable fullscreen: ${error.message}`);
-            });
-        } else {
-            document.exitFullscreen();
         }
 
     });
@@ -416,8 +401,8 @@ window.addEventListener('load', async () => {
     // Add click listener to profile image
     queries.profile.addEventListener('click', async (event) => {
 
-        // > Action: Sign in
-        await firestore.login(true);
+        // > Action: Open the menu
+        queries.menu.open();
 
     });
 

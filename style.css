@@ -252,6 +252,12 @@ body {
   color: var(--foreground-weak);
 }
 
+#textarea:disabled {
+  color: transparent;
+  user-select: none;
+  cursor: not-allowed;
+}
+
 #textarea.experimental {
   padding: var(--half);
   scrollbar-gutter: stable both-edges;
