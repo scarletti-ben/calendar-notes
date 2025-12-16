@@ -14,6 +14,17 @@
  */
 
 // < ======================================================
+// < URL
+// < ======================================================
+
+/**
+ * URL used for SVG icon references
+ * 
+ * @type {string}
+ */
+const svgURL = `assets/svg/lucide.svg`;
+
+// < ======================================================
 // < Shadow Root HTML Structure
 // < ======================================================
 
@@ -188,7 +199,7 @@ class ProfileMenu extends HTMLElement {
         const html = `
             <div class="menu-item" data-action="${name}">
                 <svg class="icon">
-                    <use href="assets/svg/lucide.svg#${icon}"></use>
+                    <use href="${svgURL}#${icon}"></use>
                 </svg>
                 <span>${text}</span>
             </div>
