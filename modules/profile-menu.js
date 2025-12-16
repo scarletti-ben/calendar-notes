@@ -14,6 +14,12 @@
  */
 
 // < ======================================================
+// < URL Declaration
+// < ======================================================
+
+const svgURL = `./assets/svg/lucide.svg`;
+
+// < ======================================================
 // < Shadow Root HTML Structure
 // < ======================================================
 
@@ -180,7 +186,7 @@ class ProfileMenu extends HTMLElement {
      * 
      * @param {string} name Name for the menu action for `data-action`
      * @param {string} text Text to show in the menu
-     * @param {string} icon Icon reference id from `lucide.svg`
+     * @param {string} icon Icon reference id
      * @param {() => void} callback - Function to call when clicked
      * @returns {HTMLDivElement} The `<div class="menu-item">` element
      */
@@ -188,7 +194,7 @@ class ProfileMenu extends HTMLElement {
         const html = `
             <div class="menu-item" data-action="${name}">
                 <svg class="icon">
-                    <use href="assets/svg/lucide.svg#${icon}"></use>
+                    <use href="${svgURL}#${icon}"></use>
                 </svg>
                 <span>${text}</span>
             </div>
