@@ -188,7 +188,7 @@ class ProfileMenu extends HTMLElement {
         const html = `
             <div class="menu-item" data-action="${name}">
                 <svg class="icon">
-                    <use href="/assets/svg/lucide.svg#${icon}"></use>
+                    <use href="assets/svg/lucide.svg#${icon}"></use>
                 </svg>
                 <span>${text}</span>
             </div>
