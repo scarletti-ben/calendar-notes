@@ -212,6 +212,13 @@ function nextTheme() {
     savePreferences();
 }
 
+/**
+ * Download notes as `notes.json`
+ */
+function downloadData() {
+    tools.downloadData(notes, 'notes.json');
+}
+
 // ~ ======================================================
 // ~ Entry Point
 // ~ ======================================================
@@ -265,6 +272,22 @@ window.addEventListener('load', async () => {
 
         // > Action: Save and upload notes
         saveNotes();
+
+    });
+
+    // Add load button to main menu
+    queries.menu.addItem('load', 'Load', 'cloud-download', async () => {
+
+        // > Action: Load notes from cloud
+        loadNotes();
+
+    });
+
+    // Add download button to main menu
+    queries.menu.addItem('download', 'Download', 'download', async () => {
+
+        // > Action: Download notes to a .json file
+        downloadData();
 
     });
 
