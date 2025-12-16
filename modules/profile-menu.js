@@ -41,8 +41,6 @@ const SHADOW_HTML = `
 
     <div id="email"></div>
 
-    <div class="separator"></div>  
-
 </div>
 
 `;
