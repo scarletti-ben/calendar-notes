@@ -1,5 +1,5 @@
 # Overview
-This project is a rework of previous project to create a notes app with a calendar, where each day is its own note. It is a work in progress, though quite functional as it stands. The application has a simple user interface and `Google Firebase` integration for sign-in, so that notes can be synced across multiple devices. 
+This project is a rework of previous project to create a notes app with a calendar, where each day is its own note. It is a work in progress, though quite functional as it stands. The application has a simple user interface and `Google Firebase` integration for sign-in, so that notes can be synced across multiple devices
 
 Additional documentation may be found on the [wiki](https://github.com/scarletti-ben/calendar-notes/wiki). Occasionally I do this as it is useful to reduce the need for constant  `README` commits in development
 
