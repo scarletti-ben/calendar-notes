@@ -16,7 +16,7 @@ categories: [
   webdev
 ]
 tags: [
-  html, css, javascript, custom element, custom web component, custom widget
+  html, css, javascript, google oauth 2.0, authentication, firebase, firestore, database, custom element, custom web component, custom widget
 ]
 ---
 ```
