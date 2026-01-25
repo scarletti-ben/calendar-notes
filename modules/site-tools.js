@@ -1459,6 +1459,169 @@ class Cycle {
 // const value = cycle.next()
 // console.log(value)
 
+// < ======================================================
+// < Submodule: encryptor
+// < ======================================================
+
+/**
+ * Utility module for encryption via `Web Crypto API`
+ * - Defines `encryptor` utility object
+ * 
+ * @module encryptor
+ * @author Ben Scarletti
+ * @since 2025-08-27
+ * @modified 2025-12-12
+ * @see {@link https://github.com/scarletti-ben}
+ * @license MIT
+ */
+
+/**
+ * Derive a `CryptoKey` from a given password and salt
+ * - Key is non-extractable, and should not be serialisable
+ *     - Should only be usable on the system that derived the key
+ *     - Cannot be wrapped or transferred
+ *     - Can be safely stored in `IndexedDB`
+ * - `PBKDF2` / `SHA-256` / `AES-GCM` / `i = 100_000`
+ * 
+ * @param {string} password - The password to derive the key from
+ * @param {string} salt - The salt to derive the key from
+ * @returns {Promise<CryptoKey>} The derived `CryptoKey` object
+ */
+async function deriveKey(password, salt) {
+
+    // > Text encoder used for encoding strings to bytes
+    const encoder = new TextEncoder();
+
+    // > Generate master key for use by deriveKey
+    const masterKey = await window.crypto.subtle.importKey(
+        'raw',
+        encoder.encode(password),
+        "PBKDF2",
+        false,
+        ["deriveKey"]
+    );
+
+    // > Derive secret key from master key
+    return window.crypto.subtle.deriveKey(
+        {
+            name: "PBKDF2",
+            salt: encoder.encode(salt),
+            iterations: 100000,
+            hash: "SHA-256"
+        },
+        masterKey,
+        {
+            name: "AES-GCM",
+            length: 256
+        },
+        false,
+        [
+            "encrypt",
+            "decrypt"
+        ]
+    );
+
+}
+
+// const cryptoKey = await deriveKey('password', 'salt');
+
+/**
+ * Encrypt text string using a given `CryptoKey`
+ * 
+ * @param {string} text - The text string to encrypt
+ * @param {CryptoKey} key - The `CryptoKey` for encryption
+ * @returns {Promise<string>} The ciphertext and IV as a comma-separated `Base64` string
+ */
+async function encrypt(text, key) {
+    const textBytes = new TextEncoder().encode(text);
+    const IVBytes = window.crypto.getRandomValues(new Uint8Array(12));
+    const cipherBytes = await window.crypto.subtle.encrypt(
+        {
+            name: "AES-GCM",
+            iv: IVBytes
+        },
+        key,
+        textBytes
+    );
+    const IV64 = bytesToBase64(IVBytes);
+    const ciphertext64 = bytesToBase64(cipherBytes);
+    return ciphertext64 + ',' + IV64;
+}
+
+// const text = 'test';
+// const cryptoKey = await deriveKey('password', 'salt');
+// const encryptedText = await encrypt(text, cryptoKey);
+
+/**
+ * Decrypt `Base64` string using a given `CryptoKey`
+ * 
+ * @param {string} encrypted64 - The ciphertext and IV as a comma-separated `Base64` string
+ * @param {CryptoKey} key - The `CryptoKey` for decryption
+ * @returns {Promise<string>} The decrypted text string
+ */
+async function decrypt(encrypted64, key) {
+    const [ciphertext64, IV64] = encrypted64.split(',');
+    const ciphertextBytes = base64ToBytes(ciphertext64);
+    const IVBytes = base64ToBytes(IV64);
+    const textBytes = await window.crypto.subtle.decrypt(
+        {
+            name: "AES-GCM",
+            iv: IVBytes
+        },
+        key,
+        ciphertextBytes
+    );
+    return new TextDecoder().decode(textBytes);
+}
+
+// const text = 'test';
+// const cryptoKey = await deriveKey('password', 'salt');
+// const encryptedText = await encrypt(text, cryptoKey);
+// const decryptedText = await decrypt(encryptedText, key);
+// console.log(decryptedText == text);
+
+/**
+ * Obfuscate text using a fixed encryption key
+ * 
+ * @param {string} text - The text string to encrypt
+ * @returns {Promise<string>} The ciphertext and IV as a comma-separated `Base64` string
+ */
+async function obfuscateText(text) {
+    const key = await deriveKey('password', 'salt');
+    const output = await encrypt(text, key);
+    return output;
+}
+
+/**
+ * De-obfuscate text using a fixed encryption key
+ * 
+ * @param {string} text - The ciphertext and IV as a comma-separated `Base64` string
+ * @returns {Promise<string>} The decrypted text string
+ */
+async function deobfuscateText(text) {
+    const key = await deriveKey('password', 'salt');
+    const output = await decrypt(text, key);
+    return output;
+}
+
+/**
+ * Utility object for interacting with `Web Crypto API`
+ * 
+ * @example 
+ * const text = 'test';
+ * const cryptoKey = await encryptor.deriveKey('password', 'salt');
+ * const encryptedText = await encryptor.encrypt(text, cryptoKey);
+ * const decryptedText = await encryptor.decrypt(encryptedText, cryptoKey);
+ * console.log(decryptedText == text);
+ */
+const encryptor = {
+    deriveKey,
+    encrypt,
+    decrypt,
+    obfuscateText,
+    deobfuscateText
+}
+
 // > ======================================================
 // > Exports
 // > ======================================================
@@ -1543,5 +1706,6 @@ export {
     Cycle,
     toTitleCase,
     toTitleCase_01,
-    toTitleCase_02
+    toTitleCase_02,
+    encryptor
 }
