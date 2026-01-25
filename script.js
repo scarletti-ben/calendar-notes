@@ -155,7 +155,8 @@ async function _backupNotes() {
     const suffix = tools.dateToString(new Date());
     const key = APP_NAME + `_backup_${suffix}`;
     const data = JSON.stringify(notes);
-    localStorage.setItem(key, data);
+    const enc = await tools.encryptor.obfuscateText(data);
+    localStorage.setItem(key, enc);
     console.log('Backup created');
 }
 
