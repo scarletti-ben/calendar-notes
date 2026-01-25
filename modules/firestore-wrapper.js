@@ -74,9 +74,11 @@ class FirestoreWrapper {
         this.app = initializeApp(this.config, this.name);
         this.auth = getAuth(this.app);
         this.db = getFirestore(this.app);
-        await enableIndexedDbPersistence(this.db).catch(error => {
-            console.warn('Error enabling offline persistence:', error);
-        });
+
+        // POSTIT - Disable offline persistence while searching for bug
+        // await enableIndexedDbPersistence(this.db).catch(error => {
+        //     console.warn('Error enabling offline persistence:', error);
+        // });
 
         // Add a listener to authentication changes, updates `this.user`
         // ! Fires on on page load as well as on authentication change
