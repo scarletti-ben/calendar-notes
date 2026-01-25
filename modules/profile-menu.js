@@ -93,7 +93,7 @@ const SHADOW_CSS = `
 #menu {
     min-width: 256px;
     height: auto;
-    padding: 8px 0;
+    padding: 8px;
     position: fixed;
     bottom: 60px;
     left: 10px;
