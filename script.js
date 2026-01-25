@@ -354,6 +354,7 @@ window.addEventListener('load', async () => {
         const str = prompt("Search");
         if (!str || str === '') return;
         const restult = searchNotes(str);
+        tools.downloadData(restult);
         console.log(restult);
 
     });
