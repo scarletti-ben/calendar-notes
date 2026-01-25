@@ -149,9 +149,24 @@ function savePreferences() {
 }
 
 /**
+ * Temporary `localStorage` backup function, until bugs are fixed
+ */
+async function _backupNotes() {
+    const suffix = tools.dateToString(new Date());
+    const key = APP_NAME + `_backup_${suffix}`;
+    const data = JSON.stringify(notes);
+    localStorage.setItem(key, data);
+    console.log('Backup created');
+}
+
+/**
  * Save user notes to `firestore`
  */
 async function saveNotes() {
+
+    // POSTIT - Temporary backup function
+    _backupNotes();
+
     try {
         const date = queries.date.dataset.date;
         const text = queries.textarea.value;
@@ -219,6 +234,40 @@ function downloadData() {
     tools.downloadData(notes, 'notes.json');
 }
 
+/**
+ * Search through notes for a string
+ * 
+ * @param {string} searchTerm - String to search for
+ * @param {boolean} caseSensitive - Whether search should be case sensitive (default: false)
+ * @returns {Array} Array of result objects
+ */
+function searchNotes(searchTerm, caseSensitive = false) {
+
+    const results = [];
+    const term = caseSensitive ? searchTerm : searchTerm.toLowerCase();
+
+    for (const [date, noteText] of Object.entries(notes)) {
+        if (!noteText) continue;
+
+        const lines = noteText.split('\n');
+        lines.forEach((line, index) => {
+            const searchLine = caseSensitive ? line : line.toLowerCase();
+            if (searchLine.includes(term)) {
+                results.push({
+                    date,
+                    lineNumber: index + 1,
+                    line: line,
+                    lineBefore: index > 0 ? lines[index - 1] : undefined,
+                    lineAfter: index < lines.length - 1 ? lines[index + 1] : undefined
+                });
+            }
+        });
+    }
+
+    return results;
+
+}
+
 // ~ ======================================================
 // ~ Entry Point
 // ~ ======================================================
@@ -279,7 +328,20 @@ window.addEventListener('load', async () => {
     queries.menu.addItem('load', 'Load', 'cloud-download', async () => {
 
         // > Action: Load notes from cloud
-        loadNotes();
+        // POSTIT - Is this deleting data?
+        alert("Disabled until fixed");
+        // loadNotes();
+
+    });
+
+    // Add search button to main menu
+    queries.menu.addItem('search', 'Search', 'scan-search', async () => {
+
+        // > Action: Search for string
+        const str = prompt("Search");
+        if (!str || str === '') return;
+        const restult = searchNotes(str);
+        console.log(restult);
 
     });
 
