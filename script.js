@@ -170,6 +170,8 @@ async function _backupNotes() {
  */
 async function saveNotes() {
 
+    // ! CONSIDER ADDING A READ AND COMPARE CHECK TO PROTECT DATA
+
     if (!initialLoad) {
         console.warn('PAGE NOT LOADED - CANNOT SAVE');
         return;
@@ -354,7 +356,8 @@ window.addEventListener('load', async () => {
         const str = prompt("Search");
         if (!str || str === '') return;
         const restult = searchNotes(str);
-        tools.downloadData(restult);
+        // tools.downloadData(restult);
+        tools.viewData(restult);
         console.log(restult);
 
     });
