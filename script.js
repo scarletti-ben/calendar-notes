@@ -84,6 +84,11 @@ const notes = {};
  */
 const today = new Date();
 
+/**
+ * Boolean check to see if an initial load has been completed
+ */
+let initialLoad = false;
+
 // < ======================================================
 // < Element Queries
 // < ======================================================
@@ -165,6 +170,11 @@ async function _backupNotes() {
  */
 async function saveNotes() {
 
+    if (!initialLoad) {
+        console.warn('PAGE NOT LOADED - CANNOT SAVE');
+        return;
+    }
+
     // POSTIT - Temporary backup function
     _backupNotes();
 
@@ -211,6 +221,8 @@ async function loadNotes() {
         calendar.starredDates.length = 0;
         calendar.starredDates.push(...usedDates);
         calendar.updateDate(new Date());
+
+        initialLoad = true;
 
     } catch (error) {
         console.log('Error when loading user notes', error);
